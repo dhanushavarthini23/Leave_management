@@ -1,7 +1,8 @@
 import Hapi from '@hapi/hapi';
 import dotenv from 'dotenv';
 import { logRequest, checkAuthorization } from './middlewares'; // Import middlewares
-import employeeRoutes from './routes/employeeRoutes'; // Import routes
+import employeeRoutes from './routes/employeeRoutes'; // Import employee routes
+import leaveRoutes from './routes/leaveRoutes'; // Import leave-related routes
 import AppDataSource from './data-source';  // Import TypeORM connection setup
 
 dotenv.config();
@@ -11,7 +12,6 @@ const init = async () => {
   try {
     await AppDataSource.initialize();
     console.log('Entities:', AppDataSource.entityMetadatas.map(e => e.name));
-
     console.log('Database connected successfully!');
 
     // This will automatically create tables from your entities
@@ -26,16 +26,14 @@ const init = async () => {
     port: process.env.PORT || 5000,
     host: 'localhost',
   });
+  (server.app as { dataSource: typeof AppDataSource }).dataSource = AppDataSource;
 
-  // Register middleware
-  server.ext('onRequest', logRequest);  // Log every incoming request
-  // Uncomment if you want to check for authorization on all routes
-  // server.ext('onPreHandler', checkAuthorization);  // Authorization check for all routes
 
-  // Register routes
-  server.route(employeeRoutes);
+  server.ext('onRequest', logRequest);
 
-  // Define the root route ("/")
+  server.route(employeeRoutes); // Employee routes
+  server.route(leaveRoutes);    // Leave management routes
+
   server.route({
     method: 'GET',
     path: '/',
@@ -46,6 +44,7 @@ const init = async () => {
 
   // Start the server after DB connection is established
   try {
+    console.log(server.table());
     await server.start();
     console.log(`Server running on ${server.info.uri}`);
   } catch (err) {

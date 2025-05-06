@@ -7,11 +7,11 @@ import { Approval } from './entities/Approval';
 const AppDataSource = new DataSource({
   type: 'postgres',
   host: 'localhost',
-  port: 5432, // use your actual port
+  port: 5432, 
   username: 'postgres',
   password: 'Dhanusha@23',
   database: 'leave_management',
-  synchronize: true, // Automatically sync schema
+  synchronize: true, 
   logging: false,
   entities: [Employee, LeaveRequest, Approval],
   migrations: [],

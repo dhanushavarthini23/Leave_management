@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn,CreateDateColumn } from 'typeorm';
 import { LeaveRequest } from './LeaveRequest';
 import { Employee } from './Employee';
 
@@ -24,4 +24,9 @@ export class Approval {
     default: 'Pending',  // Default value
   })
   status!: 'Pending' | 'Approved' | 'Rejected';  // Enforcing status types
+  @Column({ nullable: true })
+  comments?: string; // Comments from the approver
+  @CreateDateColumn()
+  approvalDate!: Date;
+  
 }
