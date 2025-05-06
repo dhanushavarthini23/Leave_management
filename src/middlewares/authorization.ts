@@ -1,22 +1,41 @@
 import { Request, ResponseToolkit } from '@hapi/hapi';
 
-export const checkAuthorization = async (request: Request, h: ResponseToolkit) => {
-  const authHeader = request.headers.authorization;
+// Define only the part of credentials you care about
+interface CustomAuthCredentials {
+  id: number;
+  role: string;
+  [key: string]: any;
+}
 
-  if (!authHeader) {
-    return h.response({ error: 'Unauthorized' }).code(401); // No authorization header found
+// Middleware to check if the user is a manager
+export const isManager = async (request: Request, h: ResponseToolkit) => {
+  const credentials = request.auth.credentials as CustomAuthCredentials;
+
+  if (!credentials || credentials.role !== 'manager') {
+    return h.response({ message: 'Unauthorized: Only managers can approve leave requests' }).code(403);
   }
 
-  // Check if the header starts with 'Bearer'
-  const token = authHeader.split(' ')[1];
-  if (!token) {
-    return h.response({ error: 'Unauthorized' }).code(401); // Missing token
+  return h.continue;
+};
+
+// Middleware to check if the user is HR
+export const isHR = async (request: Request, h: ResponseToolkit) => {
+  const credentials = request.auth.credentials as CustomAuthCredentials;
+
+  if (!credentials || credentials.role !== 'hr') {
+    return h.response({ message: 'Unauthorized: Only HR can perform this action' }).code(403);
   }
 
-  // Example: Checking for a hardcoded token (replace with your logic)
-  if (token !== 'valid_token') {
-    return h.response({ error: 'Forbidden' }).code(403); // Invalid token
+  return h.continue;
+};
+
+// Middleware to check if the user is authenticated
+export const isAuthenticated = async (request: Request, h: ResponseToolkit) => {
+  const credentials = request.auth.credentials as CustomAuthCredentials;
+
+  if (!credentials) {
+    return h.response({ message: 'Unauthorized: Please log in' }).code(401);
   }
 
-  return h.continue; // Allow the request to proceed to the handler if authorized
+  return h.continue;
 };

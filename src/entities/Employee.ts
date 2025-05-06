@@ -23,20 +23,24 @@ export class Employee {
   @Column()
   role!: 'Employee' | 'Manager' | 'HR';
 
-  // 👇 Employees have leave requests
+  @Column({ type: 'int', default: 20 })
+  leaveBalance!: number;
+
+  @Column({ nullable: true })
+  username?: string;
+  @Column({ nullable: true })  // Allow NULLs temporarily
+  password!: string;           // Add password field
+
   @OneToMany(() => LeaveRequest, (leaveRequest) => leaveRequest.employee)
   leaveRequests!: LeaveRequest[];
 
-  // 👇 Employees (managers/HR) can approve leave requests through the Approval entity
   @OneToMany(() => Approval, (approval) => approval.approver)
   approvals!: Approval[];
 
-  // 👇 Self-referencing: each employee can have a manager
   @ManyToOne(() => Employee, { nullable: true })
   @JoinColumn({ name: 'manager_id' })
   manager?: Employee;
 
-  // 👇 One manager can have many subordinates
   @OneToMany(() => Employee, (employee) => employee.manager)
   subordinates?: Employee[];
 }

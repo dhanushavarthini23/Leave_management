@@ -1,5 +1,5 @@
-import { logRequest } from './logging';
-import { checkAuthorization } from './authorization';
+import { logRequest } from './logging';              
+import { isAuthenticated, isManager, isHR } from '../middlewares/authorization';
 
 // Exporting all the middleware for easier import
-export { logRequest, checkAuthorization };
+export { logRequest, isAuthenticated, isManager, isHR };

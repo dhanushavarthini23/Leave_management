@@ -1,20 +1,39 @@
+import { ServerRoute } from '@hapi/hapi';
+import AppDataSource from '../data-source';
 import { LeaveRequest } from '../entities/LeaveRequest';
-import { ServerRoute, Request, ResponseToolkit } from '@hapi/hapi';
-import { isManager } from '../middlewares/auth';
-const getPendingLeaveRequestsRoute: ServerRoute = {
-  method: 'GET',
-  path: '/api/leave-requests/pending',
-  options: {
-    //pre: [isManager],
-    handler: async (request: Request, h: ResponseToolkit) => {
+import { ApprovalController } from '../controllers/ApprovalController';
+import { isAuthenticated, isManager, isHR } from '../middlewares/authorization';
+
+const leaveRoutes: ServerRoute[] = [
+  // Pending list (in-route)
+  {
+    method: 'GET',
+    path: '/api/leave-requests/pending',
+    handler: async (request, h) => {
       const repo = (request.server.app as any).dataSource.getRepository(LeaveRequest);
       const pending = await repo.find({
         where: { status: 'Pending' },
-        relations: ['employee'],
+        relations: ['employee', 'approvals'],
       });
-      return h.response(pending);
+      return h.response(pending).code(200);
     },
   },
-};
 
-export default getPendingLeaveRequestsRoute;
+  // Manager approval → uses ApprovalController
+  {
+    method: 'POST',
+    path: '/api/leave-requests/{id}/approve/manager',
+    options: { pre: [isAuthenticated, isManager] },
+    handler: ApprovalController.managerDecision, // Directly use the controller method
+  },
+
+  // HR approval → uses ApprovalController
+  {
+    method: 'POST',
+    path: '/api/leave-requests/{id}/approve/hr',
+    options: { pre: [isAuthenticated, isHR] },
+    handler: ApprovalController.hrDecision, // Directly use the controller method
+  },
+];
+
+export default leaveRoutes;

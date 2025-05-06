@@ -9,11 +9,11 @@ export class LeaveRequest {
 
   @ManyToOne(() => Employee)
   @JoinColumn({ name: 'employee_id' })
-  employee!: Employee;  // Who is requesting leave
+  employee!: Employee;
 
   @ManyToOne(() => Employee, { nullable: true })
   @JoinColumn({ name: 'manager_id' })
-  manager!: Employee | null;  // Who approved it (if > 5 days and assigned)
+  manager!: Employee | null;
 
   @Column({ type: 'date' })
   startDate!: Date;
@@ -24,19 +24,16 @@ export class LeaveRequest {
   @Column()
   reason!: string;
 
-  @Column({ default: 'Pending' })
-  status!: 'Pending' | 'Approved' | 'Rejected';
+  @Column({
+    type: 'enum',
+    enum: ['Pending', 'Manager Approved', 'Approved', 'Rejected'],
+    default: 'Pending',
+  })
+  status!: 'Pending' | 'Manager Approved' | 'Approved' | 'Rejected';
 
   @CreateDateColumn()
   createdAt!: Date;
 
   @OneToMany(() => Approval, (approval) => approval.leaveRequest)
-  approvals!: Approval[];  // This will track all the approval records related to this leave request.
-
-  // 👇 Remove manager approval fields from here, as they will be handled in the Approval entity
-  // @Column({ default: false })
-  // isManagerApproved!: boolean;
-
-  // @Column({ default: false })
-  // isHRApproved!: boolean;
+  approvals!: Approval[];
 }
